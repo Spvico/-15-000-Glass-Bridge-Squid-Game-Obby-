@@ -1,0 +1,113 @@
+local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+repeat wait() until player.Character
+local character = player.Character
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Hapus GUI lama jika ada
+if game.CoreGui:FindFirstChild("MyCustomGUI") then
+    game.CoreGui:FindFirstChild("MyCustomGUI"):Destroy()
+end
+
+-- GUI Setup
+local gui = Instance.new("ScreenGui")
+gui.Name = "MyCustomGUI"
+gui.Parent = game.CoreGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 150)
+frame.Position = UDim2.new(0.5, -100, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Size = UDim2.new(0, 20, 0, 20)
+minimizeButton.Position = UDim2.new(1, -25, 0, 5)
+minimizeButton.Text = "-"
+minimizeButton.Parent = frame
+
+local showButton = Instance.new("TextButton")
+showButton.Size = UDim2.new(0, 100, 0, 30)
+showButton.Position = UDim2.new(0.5, -50, 0.05, 0)
+showButton.Text = "Show GUI"
+showButton.Visible = false
+showButton.Parent = gui
+
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 50, 0, 20)
+closeButton.Position = UDim2.new(1, -55, 0, 5)
+closeButton.Text = "Close"
+closeButton.Parent = frame
+
+local onButton = Instance.new("TextButton")
+onButton.Size = UDim2.new(0, 180, 0, 40)
+onButton.Position = UDim2.new(0, 10, 0, 40)
+onButton.Text = "ON"
+onButton.Parent = frame
+
+local offButton = Instance.new("TextButton")
+offButton.Size = UDim2.new(0, 180, 0, 40)
+offButton.Position = UDim2.new(0, 10, 0, 90)
+offButton.Text = "OFF"
+offButton.Parent = frame
+
+local isActive = false
+local keyLoop
+local teleportLoop
+
+-- Fungsi Minimize GUI
+minimizeButton.MouseButton1Click:Connect(function()
+    frame.Visible = false
+    showButton.Visible = true
+end)
+
+-- Fungsi Menampilkan Kembali GUI
+showButton.MouseButton1Click:Connect(function()
+    frame.Visible = true
+    showButton.Visible = false
+end)
+
+-- Fungsi Menutup GUI
+closeButton.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+-- Fungsi Saat ON ditekan
+onButton.MouseButton1Click:Connect(function()
+    if isActive then return end
+    isActive = true
+
+    -- Auto Tekan 'E' & 'Space' Setiap 0.2 Detik
+    keyLoop = RunService.RenderStepped:Connect(function()
+        if isActive then
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+            wait(0.1)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
+            wait(0.1)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+        end
+    end)
+
+    -- Auto Teleport Setiap 1 Detik (Koordinat Diperbarui)
+    teleportLoop = RunService.RenderStepped:Connect(function()
+        if isActive then
+            humanoidRootPart.CFrame = CFrame.new(-2.343529224395752, 7.565614700317383, -1176.188720703125)
+            wait(1)
+        end
+    end)
+end)
+
+-- Fungsi Saat OFF ditekan
+offButton.MouseButton1Click:Connect(function()
+    isActive = false
+    if keyLoop then keyLoop:Disconnect() end
+    if teleportLoop then teleportLoop:Disconnect() end
+end)
